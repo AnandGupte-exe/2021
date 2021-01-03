@@ -1,0 +1,122 @@
+import pygame
+import math
+import numpy as np
+
+pygame.init()
+
+Map_Width = 400
+Map_Height = 200
+
+fieldDisplay = pygame.display.set_mode((Map_Width,Map_Height))
+pygame.display.set_caption('Robot_mapping')
+clock = pygame.time.Clock()
+
+Yvalue = 100
+White = (255,255,255)
+
+
+Robot = (230, 0, 255)
+Trash = (160,255,0)
+Person =  (255,60,0)
+Center_Path = (0,0,0)
+Path_1 = (0,200,255)
+Path_2 = (0,120,255)
+
+fieldDisplay.fill(White)
+
+class person:
+
+
+    def __init__(self, h, k, y, r):
+        self.h = h
+        self.k = k
+        self.y = y
+        self.r = r
+        self.x = np.nan
+
+        pygame.draw.circle(fieldDisplay, Person, (self.h, self.k), 5)
+
+    def Calculate(self):
+
+        Circle_to_Path_Delta = abs(self.k - self.y)
+
+        if self.r > Circle_to_Path_Delta:
+
+            _1 = (self.y - self.k)**2
+
+            _2 = abs(self.r**2 - _1)
+
+            _3_plus = self.h + math.sqrt(_2)
+            _3_minus = self.h - math.sqrt(_2)
+
+
+            self.x =  [_3_plus, _3_minus]
+
+            pygame.draw.line(fieldDisplay,
+                            White,
+                            ((self.x[0] - 1), self.y),
+
+                            ((self.x[1] + 1), self.y), 1)
+
+            Xinter_Slope1 = (self.y - self.k) / (self.x[0] - self.h)
+
+            Xinter_Slope2 = (self.y - self.k) / (self.x[1] - self.h)
+
+            Xinter_degree1 = math.atan(Xinter_Slope1) + math.pi
+
+            Xinter_degree2 = math.atan(Xinter_Slope2) - math.pi + math.pi
+
+            print(f'radien: {self.x}')
+
+            TL_X = self.h - self.r
+            TL_Y = self.k - self.r
+
+            W_H_C = self.r * 2
+
+
+            pygame.draw.arc(fieldDisplay,
+                            Center_Path,
+                            [TL_X, TL_Y, W_H_C, W_H_C],
+                            Xinter_degree1,
+                            Xinter_degree2,
+                            1)
+
+
+pygame.draw.line(fieldDisplay,
+                    Center_Path,
+                    (0, Yvalue),
+                    (400, Yvalue), 1)
+
+
+Robot_Stop = False
+while not Robot_Stop:
+
+    for event in pygame.event.get():
+
+            if event.type == pygame.QUIT:
+                Robot_Stop = True
+
+                pygame.quit()
+                quit()
+
+
+
+
+    person1 = person(200, 90, Yvalue, 30) #x, y, yValue, radius
+    person1.Calculate()
+
+
+    person2 = person(100, 110, Yvalue, 30) #x, y, yValue, radius
+    person2.Calculate()
+
+    person3 = person(300, 115, Yvalue, 30) #x, y, yValue, radius
+    person3.Calculate()
+
+    pygame.display.update()
+
+    clock.tick(20)
+
+
+
+pygame.quit()
+quit()
