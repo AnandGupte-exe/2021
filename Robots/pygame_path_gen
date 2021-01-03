@@ -1,6 +1,11 @@
 import pygame
 import math
 import numpy as np
+from random import seed
+from random import randint
+
+
+seed(1)
 
 pygame.init()
 
@@ -11,7 +16,6 @@ fieldDisplay = pygame.display.set_mode((Map_Width,Map_Height))
 pygame.display.set_caption('Robot_mapping')
 clock = pygame.time.Clock()
 
-Yvalue = 100
 White = (255,255,255)
 
 
@@ -24,72 +28,147 @@ Path_2 = (0,120,255)
 
 fieldDisplay.fill(White)
 
+
+
+def Cluster_detect(r):
+    global People_Cords
+    print(People_Cords)
+
+    for x in range(len(People_Cords)):
+
+        for y in range(len(People_Cords)):
+
+            if y != x:
+
+                if x < len(People_Cords) and y < len(People_Cords):
+
+                    #print(f'x = {x}')
+
+                    #print(f'len = {len(People_Cords)}')
+
+                    Point1 = People_Cords[x]
+
+                    Point2 = People_Cords[y]
+
+                    Euc_Distance = math.sqrt((Point1[0] - Point2[0])**2 + (Point1[1] - Point2[1])**2)
+
+                    if Euc_Distance < r:
+
+                        People_Cords.pop(x)
+                        People_Cords.pop((y - 1))
+
+                        midpoint = [((Point1[0] + Point2[0]) / 2), ((Point1[1] + Point2[1]) / 2)]
+
+                        midpoint.append((Euc_Distance / 2) + r)
+                        print(f'midpoint = {midpoint}')
+
+                        People_Cords.append(midpoint)
+
+
+
+
 class person:
 
 
-    def __init__(self, h, k, y, r):
+    def __init__(self, h, k, r):
         self.h = h
         self.k = k
-        self.y = y
         self.r = r
         self.x = np.nan
 
-        pygame.draw.circle(fieldDisplay, Person, (self.h, self.k), 5)
 
     def Calculate(self):
 
-        Circle_to_Path_Delta = abs(self.k - self.y)
+        global Yvalue
 
-        if self.r > Circle_to_Path_Delta:
-
-            _1 = (self.y - self.k)**2
-
-            _2 = abs(self.r**2 - _1)
-
-            _3_plus = self.h + math.sqrt(_2)
-            _3_minus = self.h - math.sqrt(_2)
+        for i in range(len(Yvalue)):
 
 
-            self.x =  [_3_plus, _3_minus]
+            self.y = Yvalue[i]
 
-            pygame.draw.line(fieldDisplay,
-                            White,
-                            ((self.x[0] - 1), self.y),
+            Circle_to_Path_Delta = abs(self.k - self.y)
 
-                            ((self.x[1] + 1), self.y), 1)
+            if self.r > Circle_to_Path_Delta:
 
-            Xinter_Slope1 = (self.y - self.k) / (self.x[0] - self.h)
+                _1 = (self.y - self.k)**2
 
-            Xinter_Slope2 = (self.y - self.k) / (self.x[1] - self.h)
+                _2 = abs(self.r**2 - _1)
 
-            Xinter_degree1 = math.atan(Xinter_Slope1) + math.pi
-
-            Xinter_degree2 = math.atan(Xinter_Slope2) - math.pi + math.pi
-
-            print(f'radien: {self.x}')
-
-            TL_X = self.h - self.r
-            TL_Y = self.k - self.r
-
-            W_H_C = self.r * 2
+                _3_plus = self.h + math.sqrt(_2)
+                _3_minus = self.h - math.sqrt(_2)
 
 
-            pygame.draw.arc(fieldDisplay,
-                            Center_Path,
-                            [TL_X, TL_Y, W_H_C, W_H_C],
-                            Xinter_degree1,
-                            Xinter_degree2,
-                            1)
+                self.x =  [_3_plus, _3_minus]
+
+                pygame.draw.line(fieldDisplay,
+                                White,
+                                ((self.x[0] - 1), self.y),
+
+                                ((self.x[1] + 1), self.y), 1)
+
+                Xinter_Slope1 = (self.y - self.k) / (self.x[0] - self.h)
+
+                Xinter_Slope2 = (self.y - self.k) / (self.x[1] - self.h)
+
+                Xinter_degree1 = math.atan(Xinter_Slope1) + math.pi
+
+                Xinter_degree2 = math.atan(Xinter_Slope2) - math.pi + math.pi
+
+                #print(f'radien: {Xinter_degree1}')
+
+                TL_X = self.h - self.r
+                TL_Y = self.k - self.r
+
+                W_H_C = self.r * 2
+
+                if Xinter_degree1 < math.pi:
 
 
-pygame.draw.line(fieldDisplay,
-                    Center_Path,
-                    (0, Yvalue),
-                    (400, Yvalue), 1)
+                    pygame.draw.arc(fieldDisplay,
+                                    Center_Path,
+                                    [TL_X, TL_Y, W_H_C, W_H_C],
+                                    Xinter_degree2,
+                                    Xinter_degree1,
+                                    1)
+
+                elif Xinter_degree1 > math.pi:
+
+
+                    pygame.draw.arc(fieldDisplay,
+                                    Center_Path,
+                                    [TL_X, TL_Y, W_H_C, W_H_C],
+                                    Xinter_degree1,
+                                    Xinter_degree2,
+                                    1)
+
+
+        pygame.draw.circle(fieldDisplay, Person, (round(self.h), round(self.k)), 2)
+
+
+
+Yvalue = [50, 100, 150]
+
+People_Cords = []
+
+
+for i in range(100):
+    buffer = []
+    buffer.append(randint(0, 400))
+    buffer.append(randint(0, 200))
+    buffer.append(7)
+    People_Cords.append(buffer)
+
+
+print(People_Cords)
+
+
 
 
 Robot_Stop = False
 while not Robot_Stop:
+
+    fieldDisplay.fill((255,255,255))
+
 
     for event in pygame.event.get():
 
@@ -102,19 +181,31 @@ while not Robot_Stop:
 
 
 
-    person1 = person(200, 90, Yvalue, 30) #x, y, yValue, radius
-    person1.Calculate()
+    for i in range(len(Yvalue)):
+        pygame.draw.line(fieldDisplay,
+                        Center_Path,
+                        (0, Yvalue[i]),
+                        (400, Yvalue[i]), 1)
 
 
-    person2 = person(100, 110, Yvalue, 30) #x, y, yValue, radius
-    person2.Calculate()
 
-    person3 = person(300, 115, Yvalue, 30) #x, y, yValue, radius
-    person3.Calculate()
+
+
+    for i in range(len(People_Cords)):
+
+        if i <= len(People_Cords):
+            #print(i)
+            personTest = person(People_Cords[i][0], People_Cords[i][1], People_Cords[i][2]) #x, y, yValue, radius
+            personTest.Calculate()
+
+    Cluster_detect(7) #radius
+
 
     pygame.display.update()
 
-    clock.tick(20)
+    print('Done')
+
+    clock.tick(0.5)
 
 
 
