@@ -1,0 +1,374 @@
+#makes a heading
+#@markdown # PetPicker2000
+!pip install hyperlink
+
+#for adding links in the terminal
+import hyperlink
+#data manupulation
+import numpy as np
+#more math stuff
+import math as math
+#able to increase output font
+from IPython.display import HTML, display
+#Extra widgets
+import ipywidgets as widgets
+#graphs
+import matplotlib.pyplot as plt
+
+
+
+#data for each pet
+Init_data = [[1500, 120,  13,   3, 75, 50,   60, 1000],
+             
+             [900,  60,   16,   2, 50, 25,   35, 500],
+
+             [25,   15,   10,   0, 5,  0.5,  2,  5],
+
+             [30,   15,   15,   1, 20, 0.2,  7,  1.5],
+
+             [100,  5,    25,   0, 10, 20,   3,  2.5],
+
+             [20,   10,   3,    2, 10, 0.4,  7,  2],
+
+             [225,  20,   6,    2, 40, 2,    9,  7.5],
+
+             [400,  60,   6.5,  3, 50, 6.5,  16, 15],
+
+             [220,  45,   2,    2, 50, 0.75, 10, 4],
+
+             [130,  30,   17.5, 3, 20, 0.7,  10, 2],
+
+             [250,  60,   15,   0, 5,  0.06, 3,  2],
+
+             [50,   22.5, 75,   2, 35, 15,   7,  4]
+             
+            ]
+
+
+#function to ask and return the user data
+def get_user_data():
+
+    output = []
+
+    #initializes sliders
+    widgets.FloatSlider()
+
+    #the rest of these make specific sliders and append that data to output.lst
+    #@markdown #### 1)What is the ideal inital cost for your pet? (US Dollar)
+    Q1 = 397 #@param {type:"slider", min:0, max:1500, step:1}
+    output.append(Q1)
+
+    #@markdown #### 2)How much time per day do you want to spend maintaning the pet? (minutes)
+    Q2 = 10 #@param {type:"slider", min:0, max:120, step:1}
+    output.append(Q2)
+
+    #@markdown #### 3)What is the ideal lifespan for your pet? (years)
+    Q3 = 3 #@param {type:"slider", min:0, max:75, step:1}
+    output.append(Q3)
+
+    #@markdown #### 4)How trainable would you want your pet to be? (0 = not trainable, 1 = hard, 2 = medium, 3 = easy)
+    Q4 = 2 #@param {type:"slider", min:0, max:3, step:0.5}
+    output.append(Q4)
+
+    #@markdown #### 5)What is the ideal monthly cost for your pet? (US Dollar)
+    Q5 = 10 #@param {type:"slider", min:0, max:75  , step:1}
+    output.append(Q5)
+
+    #@markdown #### 6)What is the ideal weight of your pet? (Pounds)
+    Q6 = 0.4 #@param {type:"slider", min:0, max:50, step:0.1}
+    output.append(Q6)
+
+    #@markdown #### 7)What is the ideal length for your pet? (inches)
+    Q7 = 7 #@param {type:"slider", min:0, max:60, step:0.1}
+    output.append(Q7)
+
+    #@markdown #### 8)What is the maximum space will your pet have access to? (square feet)
+    Q8 = 655 #@param {type:"slider", min:0, max:2000, step:1}
+    output.append(Q8)
+
+    return output
+
+
+#scales init data
+def scale__inti__Data(x):
+
+
+    #transposes input data (turns colums into rows and vice versa)
+    Tinput = np.transpose(x)
+    maxData = []
+
+    output = []
+
+    for i in range(len(Tinput)):
+        #finds the max number for each data (ex. init_price, lifespan)
+        maxData.append(float(max(Tinput[i])))
+
+    for a in range(len(Tinput)):
+
+        buffer = []
+
+        for b in range(len(Tinput[0])):
+
+            #for each elemnt in each list divide the number by the max
+            buffer.append(Tinput[a][b] / maxData[a])
+
+        output.append(buffer)
+
+    #transpose data back to original form
+    output = np.transpose(output)
+
+    return output, maxData
+
+
+#scale user data
+def scale__user__Data(x, y):
+
+    output = []
+
+    for i in range(len(y)):
+
+        #uses previous max and divides with current num
+        output.append(y[i] / x[i])
+
+    return output
+
+
+#Calculate ucleadean distance
+def find_Score(x,y):
+
+    y = y.tolist()
+
+    #list of eucledean distances
+    SpaceLst = []
+
+    #final list of eucleadian distances
+    OutputSpaceLst = []
+
+    #removes the last elemt which needs a seperate equation
+    spaceX = x[len(x) - 1]
+    x.pop(len(x) - 1)
+
+
+    for i in range(len(y)):
+
+        #removes last element from all of the init data
+        SpaceLst.append(y[i][len(x)])
+
+        y[i].pop(len(x))
+
+
+    local_output = []
+    total_output = []
+
+
+    for a in range(len(y)):
+
+        buffer = []
+
+        for b in range(len(x)):
+
+            
+            #for each element in the init data subtract and absolute the 
+            #corrosponding data in the user data
+
+            buffer.append(abs(x[b] - y[a][b]))
+
+        local_output.append(buffer)
+
+
+    for i in range(len(y)):
+
+
+        #if the last element in each animal is less than the last element in the user data
+        #append 0 to the score
+        if SpaceLst[i] < spaceX:
+            OutputSpaceLst.append(0)
+
+        else:
+
+            #otherwise do a subtraction equation
+            OutputSpaceLst.append(SpaceLst[i] - spaceX)
+
+
+    for i in range(len(OutputSpaceLst)):
+
+        #add each outputSpaceLst to local output
+        local_output[i].append(OutputSpaceLst[i])
+
+    for i in range(len(local_output)):
+        #for each animal add the score together
+        total_output.append(sum(local_output[i]))
+
+
+    return total_output
+
+
+
+def findPet(x):
+
+    #list of str names for the pets corresponding to the correct index
+    indexlst = ['Dog',
+                'Cat',
+                'Fish',
+                'Gecko',
+                'Snake',
+                'Hamster',
+                'Pair of Guinea Pigs',
+                'Indoor Rabbits',
+                'Pair of Rats',
+                'Parakeet',
+                'Frog',
+                'Tortouise']
+
+    #list of hyper links corresponding the the correct index
+    indexlst_Links = [hyperlink.parse(u'https://docs.google.com/presentation/d/1P9CZTOt4FVnbMsZtUTR_HhJqIbOhIqeTdYxj3eq6E7U/edit?usp=sharing'),
+                      hyperlink.parse(u'https://docs.google.com/presentation/d/1RDzNxYq2fJ7zmZ1m5ksRQx65aNWY6d6HAaKuJwfAy9w/edit?usp=sharing'),
+                      hyperlink.parse(u'https://docs.google.com/presentation/d/1PasdZ-cfevbiaql2HdXnyla-aEAAsv13RAw1KE09E_o/edit?usp=sharing'),
+                      hyperlink.parse(u'https://docs.google.com/presentation/d/1S4Q6gkSzePhxAp7TWx4eCrlvLT7v02Vsp2b7cpzzUVo/edit?usp=sharing'),
+                      hyperlink.parse(u'https://docs.google.com/presentation/d/1ZWm63aG7kwSHOZSyB-8orU1MzERR2vxT2i6YlTK_Pq0/edit?usp=sharing'),
+                      hyperlink.parse(u'https://docs.google.com/presentation/d/1L_h7ppmMZJI0BMn2jIGIBK6ACG40P-oTQtoEZsEfACM/edit?usp=sharing'),
+                      hyperlink.parse(u'https://docs.google.com/presentation/d/1uuToxYkrvRSL4JjzrgDu6mlYoj4TOnFyFS06tSMiK5U/edit?usp=sharing'),
+                      hyperlink.parse(u'http://agco.space/index.html'),
+                      hyperlink.parse(u'https://docs.google.com/presentation/d/1g7GJjWVkqzEXdD7IonUjQmmDQgCsMeLRB1fSH6dSkjs/edit?usp=sharing'),
+                      hyperlink.parse(u'http://agco.space/index.html'),
+                      hyperlink.parse(u'https://docs.google.com/presentation/d/1d7KQiHR0Z4WJsfhAnpu-F8_vpsZle0gv9z7Qw-PrMeU/edit?usp=sharing'),
+                      hyperlink.parse(u'http://agco.space/index.html'),
+                      ]
+
+    #find the smallest score of all the animals and that index
+    min_index = x.index(min(x))
+
+    #remove that to find the next index
+    x.pop(min_index)
+
+    #to preserve the index layout add a place holder
+    x.insert(min_index, 100)
+
+    #find the smallest score of all the animals and that index
+    Sec_min_index = x.index(min(x))
+
+    #same as last tiem
+    x.pop(Sec_min_index)
+    x.insert(Sec_min_index, 100)
+
+    #finnaly the third smallest
+    Thir_min_index = x.index(min(x))
+
+    #return all the hyperlinks and names of the top 3 pets
+    output = [indexlst[min_index], 
+              indexlst[Sec_min_index], 
+              indexlst[Thir_min_index], 
+              indexlst_Links[min_index], 
+              indexlst_Links[Sec_min_index], 
+              indexlst_Links[Thir_min_index]]
+
+    return output
+
+
+
+#increases the font in the output using css
+def increase_font():
+
+  from IPython.display import Javascript
+
+  display(Javascript('''
+
+  for (rule of document.styleSheets[0].cssRules){
+    if (rule.selectorText=='body') {
+        
+      rule.style.fontSize = '20px'
+
+      break
+
+    }
+  }
+  '''))
+
+
+#init the font increase
+increase_font()
+
+
+#creates a progress bar
+def progress(value, max=100):
+
+    return HTML("""
+        
+        <progress
+            value='{value}'
+            max='{max}',
+            style='width: 100%'
+        >
+
+            {value}
+        </progress>
+
+    """.format(value=value, max=max))
+
+
+out = display(progress(0, 100), display_id=True)
+
+
+
+out.update(progress(20, 100))
+#these are just to run the acutal functions
+user_data = get_user_data()
+
+out.update(progress(40, 100))
+Scaled_Init_data = scale__inti__Data(Init_data)[0]
+
+out.update(progress(60, 100))
+Scaled_User_data = scale__user__Data( scale__inti__Data(Init_data)[1], user_data)
+
+out.update(progress(80, 100))
+Score = find_Score(Scaled_User_data, Scaled_Init_data)
+
+Graph_data = Score
+
+Final_Pet = findPet(Score)
+out.update(progress(100, 100))
+
+
+
+print()
+
+#print the final results
+print("The best pet for you is:")
+
+print(Final_Pet[0])
+print(Final_Pet[3])
+
+print()
+
+print('Second is:')
+
+print(Final_Pet[1])
+print(Final_Pet[4])
+
+print()
+
+print('Third is:')
+
+print(Final_Pet[2])
+print(Final_Pet[5])
+
+print()
+
+print('Pet Score Graph (lower is better)')
+
+graph_names = ['Dog',
+                'Cat',
+                'Fish',
+                'Gecko',
+                'Snake',
+                'Hamster',
+                'Pair of Guinea Pigs',
+                'Indoor Rabbits',
+                'Pair of Rats',
+                'Parakeet',
+                'Frog',
+                'Tortouise']
+
+
+plt.figure(num=None, figsize=(25, 6), dpi=80, facecolor='w', edgecolor='b')
+plt.bar(graph_names, find_Score(Scaled_User_data, Scaled_Init_data))
